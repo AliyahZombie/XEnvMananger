@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use std::ffi::OsString;
 
 #[derive(Debug, Parser)]
@@ -15,6 +15,55 @@ pub struct Cli {
     #[arg(long = "presets", help = "Open the presets TUI")]
     pub presets: bool,
 
+    #[arg(long = "preset-list", help = "List built-in preset definitions")]
+    pub preset_list: bool,
+
+    #[arg(long = "preset-dir", help = "Print the user presets directory path")]
+    pub preset_dir: bool,
+
+    #[arg(long = "preset-user", help = "List user preset files")]
+    pub preset_user: bool,
+
+    #[arg(
+        long = "preset-init",
+        value_name = "PROGRAM",
+        help = "Initialize a user preset file from a built-in definition"
+    )]
+    pub preset_init: Option<String>,
+
+    #[arg(
+        long,
+        help = "Optional second-level subcommand match for --preset-init"
+    )]
+    pub preset_subcommand: Option<String>,
+
+    #[arg(long, help = "Include secret env vars as keyring references")]
+    pub include_secrets: bool,
+
+    #[arg(long, help = "Overwrite an existing preset file")]
+    pub force: bool,
+
+    #[arg(
+        long = "keyring-set",
+        value_name = "KEY",
+        help = "Read a secret from stdin and store it in the keyring"
+    )]
+    pub keyring_set: Option<String>,
+
+    #[arg(
+        long = "keyring-delete",
+        value_name = "KEY",
+        help = "Delete a secret from the keyring"
+    )]
+    pub keyring_delete: Option<String>,
+
+    #[arg(
+        long = "keyring-has",
+        value_name = "KEY",
+        help = "Exit 0 if a keyring secret exists, otherwise exit 1"
+    )]
+    pub keyring_has: Option<String>,
+
     #[arg(
         long = "protocol",
         alias = "protocal",
@@ -22,76 +71,9 @@ pub struct Cli {
     )]
     pub protocol: bool,
 
-    #[command(subcommand)]
-    pub cmd: Option<Cmd>,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum Cmd {
-    /// List configured programs.
-    List,
-
-    /// List built-in preset definitions.
-    Presets {
-        #[command(subcommand)]
-        cmd: Option<PresetsCmd>,
-    },
-
-    Keyring {
-        #[command(subcommand)]
-        cmd: KeyringCmd,
-    },
-
-    /// Show stored profile details.
-    Show { program: OsString },
-
-    /// Edit (open TUI) for an existing program.
-    Edit { program: OsString },
-
-    /// Delete a stored profile.
-    Delete { program: OsString },
-
-    /// Reset a profile to defaults.
-    Reset { program: OsString },
-
-    /// Fallback: treat unknown subcommand as a program to run (and its args).
-    #[command(external_subcommand)]
-    Run(Vec<OsString>),
-}
-
-#[derive(Debug, Subcommand)]
-pub enum PresetsCmd {
-    #[command(about = "List built-in preset definitions")]
-    List,
-
-    #[command(about = "Print the user presets directory path")]
-    Dir,
-
-    #[command(about = "List user preset files")]
-    User,
-
-    #[command(about = "Initialize a user preset file from a built-in definition")]
-    Init {
-        program: String,
-
-        #[arg(long, help = "Optional second-level subcommand match (e.g. web)")]
-        subcommand: Option<String>,
-
-        #[arg(long, help = "Include secret env vars as keyring references")]
-        include_secrets: bool,
-
-        #[arg(long, help = "Overwrite an existing preset file")]
-        force: bool,
-    },
-}
-
-#[derive(Debug, Subcommand)]
-pub enum KeyringCmd {
-    Set { key: String },
-
-    Delete { key: String },
-
-    Has { key: String },
+    /// Program to run and arguments to pass through.
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    pub run: Vec<OsString>,
 }
 
 #[cfg(test)]
@@ -101,73 +83,53 @@ mod tests {
     use std::ffi::OsString;
 
     #[test]
-    fn parses_skip_with_known_subcommand() {
+    fn parses_skip_with_program_named_like_old_subcommand() {
         let cli = Cli::try_parse_from(["em", "--skip", "list"]).expect("parse");
         assert!(cli.skip);
-        assert!(matches!(cli.cmd, Some(Cmd::List)));
+        assert_eq!(cli.run, vec![OsString::from("list")]);
     }
 
     #[test]
-    fn parses_external_subcommand_as_run_and_preserves_args() {
+    fn parses_program_and_preserves_args() {
         let cli =
             Cli::try_parse_from(["em", "--skip", "myprog", "--flag", "value"]).expect("parse");
         assert!(cli.skip);
-
-        match cli.cmd {
-            Some(Cmd::Run(args)) => {
-                let expected: Vec<OsString> = ["myprog", "--flag", "value"]
-                    .into_iter()
-                    .map(OsString::from)
-                    .collect();
-                assert_eq!(args, expected);
-            }
-            other => panic!("unexpected command: {other:?}"),
-        }
+        let expected: Vec<OsString> = ["myprog", "--flag", "value"]
+            .into_iter()
+            .map(OsString::from)
+            .collect();
+        assert_eq!(cli.run, expected);
     }
 
     #[test]
-    fn parses_external_subcommand_without_skip() {
+    fn parses_program_without_skip() {
         let cli = Cli::try_parse_from(["em", "some_program", "arg1"]).expect("parse");
         assert!(!cli.skip);
-
-        match cli.cmd {
-            Some(Cmd::Run(args)) => {
-                let expected: Vec<OsString> = ["some_program", "arg1"]
-                    .into_iter()
-                    .map(OsString::from)
-                    .collect();
-                assert_eq!(args, expected);
-            }
-            other => panic!("unexpected command: {other:?}"),
-        }
+        let expected: Vec<OsString> = ["some_program", "arg1"]
+            .into_iter()
+            .map(OsString::from)
+            .collect();
+        assert_eq!(cli.run, expected);
     }
 
     #[test]
-    fn parses_presets_as_known_subcommand() {
+    fn parses_presets_as_program_name() {
         let cli = Cli::try_parse_from(["em", "presets"]).expect("parse");
         assert!(!cli.skip);
-        assert!(matches!(cli.cmd, Some(Cmd::Presets { cmd: None })));
+        assert_eq!(cli.run, vec![OsString::from("presets")]);
     }
 
     #[test]
-    fn parses_presets_subcommand() {
-        let cli = Cli::try_parse_from(["em", "presets", "dir"]).expect("parse");
-        assert!(matches!(
-            cli.cmd,
-            Some(Cmd::Presets {
-                cmd: Some(PresetsCmd::Dir)
-            })
-        ));
+    fn parses_preset_management_flags() {
+        let cli = Cli::try_parse_from(["em", "--preset-dir"]).expect("parse");
+        assert!(cli.preset_dir);
+        assert!(cli.run.is_empty());
     }
 
     #[test]
-    fn parses_keyring_subcommands() {
-        let cli = Cli::try_parse_from(["em", "keyring", "has", "abc"]).expect("parse");
-        assert!(matches!(
-            cli.cmd,
-            Some(Cmd::Keyring {
-                cmd: KeyringCmd::Has { .. }
-            })
-        ));
+    fn parses_keyring_flags() {
+        let cli = Cli::try_parse_from(["em", "--keyring-has", "abc"]).expect("parse");
+        assert_eq!(cli.keyring_has.as_deref(), Some("abc"));
+        assert!(cli.run.is_empty());
     }
 }

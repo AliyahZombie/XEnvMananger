@@ -17,88 +17,67 @@ fn main() -> color_eyre::Result<()> {
         em::tui::run()?;
         return Ok(());
     }
-    let Some(cmd) = cli.cmd else {
+
+    if cli.preset_list {
+        let mut presets = em::presets::built_in_presets()?;
+        presets.sort_by(|a, b| a.id.cmp(&b.id));
+        for p in presets {
+            println!("{}", p.id);
+        }
+        return Ok(());
+    }
+
+    if cli.preset_dir {
+        let dirs = em::paths::app_dirs()?;
+        println!("{}", dirs.presets_dir().display());
+        return Ok(());
+    }
+
+    if cli.preset_user {
+        let mut names = em::presets::list_user_presets()?;
+        names.sort();
+        for n in names {
+            println!("{n}");
+        }
+        return Ok(());
+    }
+
+    if let Some(program) = cli.preset_init {
+        let path = em::presets::init_user_preset_from_builtin(
+            &program,
+            cli.preset_subcommand.as_deref(),
+            cli.include_secrets,
+            cli.force,
+        )?;
+        println!("{}", path.display());
+        return Ok(());
+    }
+
+    if let Some(key) = cli.keyring_set {
+        let value = read_secret_from_stdin()?;
+        em::keyring::set_secret(&key, &value)?;
+        return Ok(());
+    }
+
+    if let Some(key) = cli.keyring_delete {
+        em::keyring::delete_secret(&key)?;
+        return Ok(());
+    }
+
+    if let Some(key) = cli.keyring_has {
+        let exists = em::keyring::get_secret(&key)?.is_some();
+        std::process::exit(if exists { 0 } else { 1 });
+    }
+
+    if cli.run.is_empty() {
         // When no args are provided, show help.
         let mut cmd = em::cli::Cli::command();
         cmd.print_help()?;
         println!();
         return Ok(());
-    };
-
-    match cmd {
-        em::cli::Cmd::List => {
-            println!("Not implemented: list");
-        }
-        em::cli::Cmd::Presets { cmd } => match cmd {
-            None | Some(em::cli::PresetsCmd::List) => {
-                let mut presets = em::presets::built_in_presets()?;
-                presets.sort_by(|a, b| a.id.cmp(&b.id));
-                for p in presets {
-                    println!("{}", p.id);
-                }
-            }
-            Some(em::cli::PresetsCmd::Dir) => {
-                let dirs = em::paths::app_dirs()?;
-                println!("{}", dirs.presets_dir().display());
-            }
-            Some(em::cli::PresetsCmd::User) => {
-                let mut names = em::presets::list_user_presets()?;
-                names.sort();
-                for n in names {
-                    println!("{n}");
-                }
-            }
-            Some(em::cli::PresetsCmd::Init {
-                program,
-                subcommand,
-                include_secrets,
-                force,
-            }) => {
-                let path = em::presets::init_user_preset_from_builtin(
-                    &program,
-                    subcommand.as_deref(),
-                    include_secrets,
-                    force,
-                )?;
-                println!("{}", path.display());
-            }
-        },
-        em::cli::Cmd::Keyring { cmd } => match cmd {
-            em::cli::KeyringCmd::Set { key } => {
-                let value = read_secret_from_stdin()?;
-                em::keyring::set_secret(&key, &value)?;
-            }
-            em::cli::KeyringCmd::Delete { key } => {
-                em::keyring::delete_secret(&key)?;
-            }
-            em::cli::KeyringCmd::Has { key } => {
-                let exists = em::keyring::get_secret(&key)?.is_some();
-                std::process::exit(if exists { 0 } else { 1 });
-            }
-        },
-        em::cli::Cmd::Show { program } => {
-            println!("Not implemented: show {:?}", program);
-        }
-        em::cli::Cmd::Edit { program } => {
-            println!("Not implemented: edit {:?}", program);
-        }
-        em::cli::Cmd::Delete { program } => {
-            println!("Not implemented: delete {:?}", program);
-        }
-        em::cli::Cmd::Reset { program } => {
-            println!("Not implemented: reset {:?}", program);
-        }
-        em::cli::Cmd::Run(run) => {
-            if run.is_empty() {
-                let mut cmd = em::cli::Cli::command();
-                cmd.print_help()?;
-                println!();
-                return Ok(());
-            }
-
-            run_external(run_skip, run_protocol, &run)?;
-        }
     }
+
+    run_external(run_skip, run_protocol, &cli.run)?;
 
     Ok(())
 }
@@ -179,10 +158,36 @@ fn format_cmdline(argv: &[OsString]) -> String {
 }
 
 fn profile_program_key(program: &str, subcommand: Option<&str>) -> String {
+    let program = encode_profile_key_component(program);
     match subcommand {
-        Some(s) => format!("{program}.{s}"),
-        None => program.to_string(),
+        Some(s) => format!("{program}.{}", encode_profile_key_component(s)),
+        None => program,
     }
+}
+
+fn encode_profile_key_component(component: &str) -> String {
+    let mut out = String::with_capacity(component.len());
+
+    for byte in component.bytes() {
+        if is_profile_key_component_byte(byte) {
+            out.push(char::from(byte));
+        } else {
+            out.push('%');
+            out.push(nibble_to_hex(byte >> 4));
+            out.push(nibble_to_hex(byte & 0x0f));
+        }
+    }
+
+    out
+}
+
+fn is_profile_key_component_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_')
+}
+
+fn nibble_to_hex(nibble: u8) -> char {
+    const HEX: &[u8; 16] = b"0123456789ABCDEF";
+    char::from(HEX[usize::from(nibble)])
 }
 
 fn print_not_saved(cmdline: &str) {

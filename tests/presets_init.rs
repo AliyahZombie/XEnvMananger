@@ -9,6 +9,25 @@ struct EnvSnapshot {
     prev: Vec<(OsString, Option<OsString>)>,
 }
 
+#[test]
+fn built_in_preset_includes_default_non_secret_values() {
+    let tmp = tempfile::TempDir::new().expect("tempdir");
+
+    with_sandboxed_app_dirs(tmp.path(), || {
+        let preset = em::presets::find_preset("opencode", Some("web"))
+            .expect("find_preset")
+            .expect("preset");
+
+        match preset.env_vars.get("OPENCODE_SERVER_USERNAME") {
+            Some(em::config::model::StoredEnvVar::String { value }) => {
+                assert_eq!(value, "opencode");
+            }
+            other => panic!("unexpected username env var: {other:?}"),
+        }
+        assert!(preset.env_vars.contains_key("OPENCODE_SERVER_PASSWORD"));
+    });
+}
+
 impl EnvSnapshot {
     fn capture(keys: impl IntoIterator<Item = &'static str>) -> Self {
         let prev = keys
@@ -54,10 +73,9 @@ fn presets_init_writes_user_preset_file() {
         let expected_path = presets_dir.join("opencode.web.json");
 
         let output = Command::new(em_bin)
-            .arg("presets")
-            .arg("init")
+            .arg("--preset-init")
             .arg("opencode")
-            .arg("--subcommand")
+            .arg("--preset-subcommand")
             .arg("web")
             .arg("--include-secrets")
             .env("XDG_CONFIG_HOME", tmp.path())
@@ -82,8 +100,7 @@ fn presets_init_writes_user_preset_file() {
         assert!(preset.env_vars.contains_key("OPENCODE_SERVER_PASSWORD"));
 
         let output = Command::new(em_bin)
-            .arg("presets")
-            .arg("user")
+            .arg("--preset-user")
             .env("XDG_CONFIG_HOME", tmp.path())
             .env("HOME", tmp.path())
             .env("APPDATA", tmp.path())

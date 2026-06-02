@@ -178,6 +178,14 @@ fn find_built_in_preset(
             );
             continue;
         }
+
+        let Some(default) = v.default.as_ref() else {
+            continue;
+        };
+
+        if let Some(stored) = stored_env_var_from_default(&v.ty, default) {
+            env_vars.insert(v.name, stored);
+        }
     }
 
     if env_vars.is_empty() {

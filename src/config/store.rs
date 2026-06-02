@@ -20,12 +20,20 @@ pub enum ProfileStoreError {
 }
 
 pub fn profile_path(program: &str) -> Result<PathBuf, ProfileStoreError> {
-    if program.is_empty() {
+    if !is_safe_profile_name(program) {
         return Err(ProfileStoreError::InvalidProgram);
     }
 
     let dirs = app_dirs()?;
     Ok(dirs.profiles_dir().join(format!("{program}.json")))
+}
+
+fn is_safe_profile_name(program: &str) -> bool {
+    !program.is_empty()
+        && program != "."
+        && program != ".."
+        && !program.contains('/')
+        && !program.contains('\\')
 }
 
 pub fn load_profile(program: &str) -> Result<Profile, ProfileStoreError> {
@@ -175,6 +183,14 @@ mod tests {
     fn profile_path_rejects_empty_program() {
         let err = profile_path("").unwrap_err();
         assert!(matches!(err, ProfileStoreError::InvalidProgram));
+    }
+
+    #[test]
+    fn profile_path_rejects_path_components() {
+        for program in ["../x", "..\\x", "x/y", "x\\y", ".", ".."] {
+            let err = profile_path(program).unwrap_err();
+            assert!(matches!(err, ProfileStoreError::InvalidProgram));
+        }
     }
 
     #[test]

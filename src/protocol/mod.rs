@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::io::Read;
 use std::process::{Command, Stdio};
+use std::thread;
 use std::time::{Duration, Instant};
 
 pub const PROTOCOL_FLAG: &str = "--env-manager-protocol";
@@ -68,6 +69,16 @@ pub fn detect_protocol(
         Err(_) => return (ProtocolDetectOutcome::Failed, None),
     };
 
+    let Some(mut stdout_pipe) = child.stdout.take() else {
+        let _ = child.kill();
+        let _ = child.wait();
+        return (ProtocolDetectOutcome::Failed, None);
+    };
+    let stdout_reader = thread::spawn(move || {
+        let mut stdout = Vec::new();
+        stdout_pipe.read_to_end(&mut stdout).map(|_| stdout)
+    });
+
     let start = Instant::now();
     let status = loop {
         match child.try_wait() {
@@ -76,6 +87,7 @@ pub fn detect_protocol(
                 if start.elapsed() >= timeout {
                     let _ = child.kill();
                     let _ = child.wait();
+                    let _ = stdout_reader.join();
                     return (ProtocolDetectOutcome::Failed, None);
                 }
                 std::thread::sleep(Duration::from_millis(10));
@@ -83,17 +95,16 @@ pub fn detect_protocol(
             Err(_) => {
                 let _ = child.kill();
                 let _ = child.wait();
+                let _ = stdout_reader.join();
                 return (ProtocolDetectOutcome::Failed, None);
             }
         }
     };
 
-    let mut stdout = Vec::new();
-    if let Some(mut out) = child.stdout.take() {
-        if out.read_to_end(&mut stdout).is_err() {
-            return (ProtocolDetectOutcome::Failed, None);
-        }
-    }
+    let stdout = match stdout_reader.join() {
+        Ok(Ok(stdout)) => stdout,
+        Ok(Err(_)) | Err(_) => return (ProtocolDetectOutcome::Failed, None),
+    };
 
     if !status.success() {
         return (ProtocolDetectOutcome::Failed, None);
