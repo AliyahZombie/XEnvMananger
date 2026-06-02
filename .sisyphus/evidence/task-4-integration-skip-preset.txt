@@ -1,5 +1,0 @@
-warning: protocol detection failed for 'em_fixture_no_protocol', falling back to presets
-EM_FIXTURE_MODE=preset-mode
-EM_FIXTURE_COLOR=green
-EM_FIXTURE_FLAG=true
-EM_FIXTURE_NUMBER=123

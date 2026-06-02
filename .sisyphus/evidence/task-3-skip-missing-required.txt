@@ -1,5 +1,0 @@
-    Finished dev [unoptimized + debuginfo] target(s) in 0.22s
-     Running `target/debug/em --skip em_fixture_protocol_missing_required`
-missing required environment variables:
-EM_FIXTURE_REQUIRED (string)
-exit_code=1
