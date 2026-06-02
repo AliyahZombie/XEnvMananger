@@ -1,0 +1,152 @@
+{
+  "id": "aws",
+  "name": "AWS CLI",
+  "env_vars": [
+    {
+      "name": "AWS_ACCESS_KEY_ID",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_SECRET_ACCESS_KEY",
+      "type": "secret",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_SESSION_TOKEN",
+      "type": "secret",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_PROFILE",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_DEFAULT_REGION",
+      "type": "enum",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_REGION",
+      "type": "enum",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_DEFAULT_OUTPUT",
+      "type": "enum",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_CONFIG_FILE",
+      "type": "path",
+      "required": false,
+      "default": "~/.aws/config",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_SHARED_CREDENTIALS_FILE",
+      "type": "path",
+      "required": false,
+      "default": "~/.aws/credentials",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_CA_BUNDLE",
+      "type": "path",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_PAGER",
+      "type": "string",
+      "required": false,
+      "default": "OS default",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_MAX_ATTEMPTS",
+      "type": "number",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_RETRY_MODE",
+      "type": "enum",
+      "required": false,
+      "default": "legacy",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_ENDPOINT_URL",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_EC2_METADATA_DISABLED",
+      "type": "boolean",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_METADATA_SERVICE_TIMEOUT",
+      "type": "number",
+      "required": false,
+      "default": 1,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_METADATA_SERVICE_NUM_ATTEMPTS",
+      "type": "number",
+      "required": false,
+      "default": 1,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_ROLE_ARN",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_WEB_IDENTITY_TOKEN_FILE",
+      "type": "path",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_ROLE_SESSION_NAME",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_CLI_AUTO_PROMPT",
+      "type": "enum",
+      "required": false,
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_CLI_HISTORY_FILE",
+      "type": "path",
+      "required": false,
+      "default": "~/.aws/cli/history/history.db",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    },
+    {
+      "name": "AWS_CLI_FILE_ENCODING",
+      "type": "string",
+      "required": false,
+      "default": "locale",
+      "docs_url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+    }
+  ]
+}

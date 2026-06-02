@@ -1,0 +1,61 @@
+{
+  "active_plan": "/root/XEnvManager/.sisyphus/plans/xenvmanager-implementation-plan.md",
+  "started_at": "2026-03-26T18:22:20.334Z",
+  "session_ids": [
+    "ses_2d49df0d7ffeqetN54fXfQmvXB",
+    "ses_2d49c1e38ffel0plAyvrYUeaVq",
+    "ses_2d49c1dfdffenaG8TE7WgKWY2L",
+    "ses_2d49b84ecffet0q0LY0oUgQVKA",
+    "ses_2d49b84f1ffeedJP0Y7wceZxHg",
+    "ses_2d48c5b84ffeNMMjPO4tXWfYL8",
+    "ses_2d47ba14affeRYaeC3QOsB2nwy",
+    "ses_2d46fbf78ffemF06vm5Z6aYZRJ",
+    "ses_2d46a6d9affeMv61XiMk1WXvFM",
+    "ses_2d461798fffe6SYHPZmV5RlMev",
+    "ses_2d461798cffe72HjP9YdsxB3db",
+    "ses_2d458f500ffevF8JR2BPhz0Psj",
+    "ses_2d458f508ffempS0W2vUY6fb2N",
+    "ses_2d384f962ffeEcEWsVVXLyowV2",
+    "ses_2aa146c39ffe01CpDuX5dPT3sJ",
+    "ses_2aa142f59ffeAv08Mj95NjC0hP",
+    "ses_2aa13989effeb4Eyxj4LeAIDji",
+    "ses_2aa146c65ffe65A0qIr28EeuU4",
+    "ses_2a5123c5affeL5PI4HCnSjIowE",
+    "ses_2a5123c3cffeiTydKw6NprbU7z",
+    "ses_2a2c5b899ffeAUfNN6I2wILR9x",
+    "ses_2a2c5b8c3ffe8vjuD7gyNYFwTv",
+    "ses_2a2c5ba1affeGc3MyhSA9tdwV7",
+    "ses_2a2af85daffewBl7ILQWcG11JR"
+  ],
+  "plan_name": "xenvmanager-implementation-plan",
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "建立测试与 CI 基线（Ubuntu）",
+      "session_id": "ses_2d49b84f1ffeedJP0Y7wceZxHg",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-26T18:33:32.207Z"
+    },
+    "todo:3": {
+      "task_key": "todo:3",
+      "task_label": "3",
+      "task_title": "定义 `--skip/-s` 的“无 TUI”语义并实现可测试的运行路径",
+      "session_id": "ses_2d48c5b84ffeNMMjPO4tXWfYL8",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-26T18:51:47.443Z"
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "为“不兼容协议”的程序提供 preset 配置文件 fixture，并用集成测试验证 fallback + 注入与执行",
+      "session_id": "ses_2d47ba14affeRYaeC3QOsB2nwy",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-26T19:07:58.973Z"
+    }
+  }
+}

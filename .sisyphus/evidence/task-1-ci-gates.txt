@@ -1,0 +1,10 @@
+Evidence: Task 1 — CI gates pass locally
+
+Commands:
+  cargo fmt --all -- --check
+  cargo clippy --all-targets -- -D warnings
+  cargo test
+
+Result:
+  All commands exited 0.
+  cargo test: 10 unit tests passed.
