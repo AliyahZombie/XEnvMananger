@@ -227,4 +227,4 @@ This project heavily relies on these fantastic crates: `clap`, `serde` / `serde_
 
 ## License
 
-No license has been declared for this repository yet.
+This project is open source under the [MIT License](./LICENSE).

@@ -227,4 +227,4 @@ cargo test
 
 ## 许可证
 
-本项目目前暂未声明许可证。
+本项目基于 [MIT License](./LICENSE) 开源。
