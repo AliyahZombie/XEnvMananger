@@ -1,0 +1,37 @@
+{
+  "id": "opencode",
+  "name": "OpenCode",
+  "env_vars": [
+    {
+      "name": "OPENCODE_SERVER_PASSWORD",
+      "type": "secret",
+      "required": false,
+      "docs_url": "https://www.mintlify.com/anomalyco/opencode/cli/web"
+    },
+    {
+      "name": "OPENCODE_SERVER_USERNAME",
+      "type": "string",
+      "required": false,
+      "default": "opencode",
+      "docs_url": "https://www.mintlify.com/anomalyco/opencode/cli/web"
+    },
+    {
+      "name": "OPENCODE_CONFIG",
+      "type": "path",
+      "required": false,
+      "docs_url": "https://www.mintlify.com/anomalyco/opencode/config"
+    },
+    {
+      "name": "OPENCODE_CONFIG_DIR",
+      "type": "path",
+      "required": false,
+      "docs_url": "https://www.mintlify.com/anomalyco/opencode/config"
+    },
+    {
+      "name": "OPENCODE_CONFIG_CONTENT",
+      "type": "string",
+      "required": false,
+      "docs_url": "https://www.mintlify.com/anomalyco/opencode/config"
+    }
+  ]
+}

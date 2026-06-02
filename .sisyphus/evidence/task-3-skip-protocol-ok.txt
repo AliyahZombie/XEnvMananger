@@ -1,0 +1,6 @@
+    Finished dev [unoptimized + debuginfo] target(s) in 0.44s
+     Running `target/debug/em --skip em_fixture_protocol_ok`
+EM_FIXTURE_MODE=protocol-ok
+EM_FIXTURE_COLOR=blue
+EM_FIXTURE_FLAG=true
+EM_FIXTURE_NUMBER=7

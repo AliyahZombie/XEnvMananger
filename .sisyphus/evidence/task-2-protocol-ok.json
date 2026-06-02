@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "program": "em_fixture_protocol_ok",
+  "env_vars": [
+    {
+      "name": "EM_FIXTURE_MODE",
+      "type": "string",
+      "default": "protocol-ok"
+    },
+    {
+      "name": "EM_FIXTURE_COLOR",
+      "type": "enum",
+      "default": "blue"
+    },
+    {
+      "name": "EM_FIXTURE_FLAG",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "EM_FIXTURE_NUMBER",
+      "type": "number",
+      "default": 7
+    }
+  ]
+}
