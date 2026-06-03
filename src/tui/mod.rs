@@ -516,33 +516,24 @@ fn load_protocol_items(
     let proto = proto?;
 
     let mut items: Vec<ConfigItem> = Vec::new();
-    for (name, val) in proto.env_defaults {
-        let (kind, _) = stored_kind_required(&val);
-        items.push(ConfigItem {
-            name,
-            kind,
-            required: false,
-            value: Some(val),
-        });
-    }
-
-    for v in proto.missing_required {
-        let name = v.name;
+    for v in proto.vars {
         let value = if v.kind == crate::config::model::EnvVarType::Secret {
+            // Secrets never carry a default value over the protocol; seed an
+            // empty placeholder backed by keyring or plaintext storage.
             Some(secret_placeholder(
                 program_id,
-                &name,
-                true,
+                &v.name,
+                v.required,
                 keyring_available,
             ))
         } else {
-            None
+            v.default
         };
 
         items.push(ConfigItem {
-            name,
+            name: v.name,
             kind: v.kind,
-            required: true,
+            required: v.required,
             value,
         });
     }

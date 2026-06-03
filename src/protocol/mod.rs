@@ -2,7 +2,6 @@
 
 use crate::config::model::{EnvVarType, StoredEnvVar};
 use serde::Deserialize;
-use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::io::Read;
 use std::process::{Command, Stdio};
@@ -17,11 +16,23 @@ pub struct MissingVar {
     pub kind: EnvVarType,
 }
 
+/// A single env var as reported by a protocol probe.
+///
+/// `required` is read directly from the protocol output (defaulting to
+/// `false`). `default` is the prefilled value, if any; `None` means the var
+/// has no default and starts unset.
+#[derive(Debug, Clone)]
+pub struct ProtocolVar {
+    pub name: String,
+    pub kind: EnvVarType,
+    pub required: bool,
+    pub default: Option<StoredEnvVar>,
+}
+
 #[derive(Debug, Clone)]
 pub struct ProtocolProfile {
     pub program: String,
-    pub env_defaults: BTreeMap<String, StoredEnvVar>,
-    pub missing_required: Vec<MissingVar>,
+    pub vars: Vec<ProtocolVar>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -42,6 +53,8 @@ struct ProtocolEnvVar {
     name: String,
     #[serde(rename = "type")]
     kind: String,
+    #[serde(default)]
+    required: bool,
     #[serde(default)]
     default: serde_json::Value,
 }
@@ -122,8 +135,7 @@ pub fn detect_protocol(
         return (ProtocolDetectOutcome::Failed, None);
     }
 
-    let mut env_defaults: BTreeMap<String, StoredEnvVar> = BTreeMap::new();
-    let mut missing_required: Vec<MissingVar> = Vec::new();
+    let mut vars: Vec<ProtocolVar> = Vec::new();
 
     for v in doc.env_vars {
         let kind = match parse_kind(&v.kind) {
@@ -131,27 +143,30 @@ pub fn detect_protocol(
             None => return (ProtocolDetectOutcome::Failed, None),
         };
 
-        if v.default.is_null() {
-            missing_required.push(MissingVar { name: v.name, kind });
-            continue;
-        }
-
-        let stored = match stored_from_default(kind, &v.default) {
-            Ok(s) => s,
-            Err(()) => return (ProtocolDetectOutcome::Failed, None),
+        let default = if is_empty_default(&kind, &v.default) {
+            None
+        } else {
+            match stored_from_default(kind.clone(), &v.default) {
+                Ok(s) => Some(s),
+                Err(()) => return (ProtocolDetectOutcome::Failed, None),
+            }
         };
 
-        env_defaults.insert(v.name, stored);
+        vars.push(ProtocolVar {
+            name: v.name,
+            kind,
+            required: v.required,
+            default,
+        });
     }
 
-    missing_required.sort_by(|a, b| a.name.cmp(&b.name));
+    vars.sort_by(|a, b| a.name.cmp(&b.name));
 
     (
         ProtocolDetectOutcome::Ok,
         Some(ProtocolProfile {
             program: expected_program.to_string(),
-            env_defaults,
-            missing_required,
+            vars,
         }),
     )
 }
@@ -166,6 +181,14 @@ fn parse_kind(kind: &str) -> Option<EnvVarType> {
         "path" => Some(EnvVarType::Path),
         _ => None,
     }
+}
+
+/// Returns true when the protocol output carries no usable default for this
+/// var, so it should start unset in the editor. A `null`/absent default has no
+/// value; secrets additionally never carry a default, so `""` is treated as
+/// empty too.
+fn is_empty_default(kind: &EnvVarType, default: &serde_json::Value) -> bool {
+    default.is_null() || (*kind == EnvVarType::Secret && default.as_str() == Some(""))
 }
 
 fn stored_from_default(kind: EnvVarType, default: &serde_json::Value) -> Result<StoredEnvVar, ()> {

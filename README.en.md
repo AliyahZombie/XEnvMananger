@@ -173,7 +173,7 @@ Remember, this protocol is strictly for discovering schemas and default valuesâ€
 - Absolutely do not open interactive prompts or alter the user's local state in any way.
 - The `version` field must be hardcoded to `"1.0"`.
 - The `program` field must precisely match the target name the user handed to `em`.
-- Keep secrets safe: their `default` value must be `null` (for security reasons, the current implementation firmly rejects non-null default secrets).
+- Keep secrets safe: use `default: null` for secrets. Empty strings are treated as unset for compatibility, while non-empty defaults are still rejected.
 
 Here's the minimal JSON blueprint:
 

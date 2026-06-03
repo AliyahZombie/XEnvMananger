@@ -85,11 +85,13 @@ Your program must print JSON in this shape:
     {
       "name": "EXAMPLE_TOKEN",
       "type": "secret",
+      "required": true,
       "default": null
     },
     {
       "name": "EXAMPLE_MODE",
       "type": "string",
+      "required": false,
       "default": "dev"
     }
   ]
@@ -115,19 +117,37 @@ If `version` or `program` does not match, protocol detection is treated as faile
 - `enum`
 - `path`
 
+## Meaning of `required`
+
+`required` is an explicit boolean on every env var:
+
+- it is optional in the JSON and defaults to `false`
+- `true` marks the variable as required: the editor flags it and refuses to run until it has a value
+- `false` (or omitted) marks the variable as optional
+
+`required` is independent of `default`. A field can be required with a default, required with no default, optional with a default, or optional with no default — all four combinations are valid.
+
 ## Meaning of `default`
 
-`default` serves two roles:
+`default` is the value prefilled into the config UI:
 
-- non-null: a default value that is prefilled into the config UI
-- null: marks the variable as required and initially missing
+- non-null: prefilled as the starting value
+- null (or omitted): the variable starts unset
+
+`default` no longer controls whether a field is required — use `required` for that.
 
 ### Required fields
 
-If you want an env var to be required, set:
+To make an env var required, set `required: true`:
 
 ```json
-{ "name": "API_KEY", "type": "string", "default": null }
+{ "name": "API_KEY", "type": "string", "required": true, "default": null }
+```
+
+You may still pair a required field with a default if you want a starting value:
+
+```json
+{ "name": "REGION", "type": "string", "required": true, "default": "us-east-1" }
 ```
 
 ### Optional fields with defaults
@@ -135,23 +155,24 @@ If you want an env var to be required, set:
 Examples:
 
 ```json
-{ "name": "MODE", "type": "string", "default": "dev" }
-{ "name": "DEBUG", "type": "boolean", "default": true }
-{ "name": "PORT", "type": "number", "default": 3000 }
-{ "name": "CONFIG_DIR", "type": "path", "default": "/tmp/app" }
+{ "name": "MODE", "type": "string", "required": false, "default": "dev" }
+{ "name": "DEBUG", "type": "boolean", "required": false, "default": true }
+{ "name": "PORT", "type": "number", "required": false, "default": 3000 }
+{ "name": "CONFIG_DIR", "type": "path", "required": false, "default": "/tmp/app" }
 ```
 
 ## Secret handling rules
 
-Secrets should normally be declared with `default: null`.
+Secrets never carry a value over the protocol, so their `default` must be `null`
+(an empty string is accepted as an equivalent unset value). Any non-empty secret
+default makes protocol detection fail. Use `required` to mark whether the secret
+must be provided.
 
 Example:
 
 ```json
-{ "name": "PASSWORD", "type": "secret", "default": null }
+{ "name": "PASSWORD", "type": "secret", "required": true, "default": null }
 ```
-
-Current implementation does **not** accept a non-null default for `secret`. If you emit one, protocol detection fails.
 
 When the UI edits a secret:
 
@@ -165,7 +186,7 @@ Profile files are written with `0600` permissions on Unix, but plaintext-in-prof
 After a successful probe:
 
 - variables with non-null defaults become prefilled values
-- variables with `default: null` become required fields in the editor
+- variables with `required: true` become required fields in the editor
 - the user can edit values, save the profile, or save-and-run
 
 `em` does not immediately execute the target just because protocol detection succeeded.
@@ -181,7 +202,7 @@ Protocol detection is considered failed if any of these happen:
 - `program` does not match expected executable name
 - an env var has an unsupported `type`
 - a non-secret default has the wrong JSON type
-- a secret uses a non-null default
+- a secret uses a non-empty default
 - the probe exceeds 10 seconds
 
 When protocol detection fails, `em` just continues with its normal fallback behavior instead of crashing.
@@ -207,6 +228,7 @@ struct EnvVar<'a> {
     name: &'a str,
     #[serde(rename = "type")]
     kind: &'a str,
+    required: bool,
     default: serde_json::Value,
 }
 
@@ -219,11 +241,13 @@ fn main() {
                 EnvVar {
                     name: "MYAPP_TOKEN",
                     kind: "secret",
+                    required: true,
                     default: serde_json::Value::Null,
                 },
                 EnvVar {
                     name: "MYAPP_MODE",
                     kind: "string",
+                    required: false,
                     default: serde_json::Value::String("dev".to_string()),
                 },
             ],
@@ -243,8 +267,8 @@ fn main() {
 - print JSON to stdout only
 - return `version: "1.0"`
 - return the correct `program` name
-- use `default: null` for required fields
-- use `default: null` for secrets
+- set `required: true` on fields that must be provided (defaults to `false` when omitted)
+- use `default: null` for secrets; empty string is accepted only as an unset compatibility value
 - finish within 10 seconds
 - keep protocol output side-effect free
 

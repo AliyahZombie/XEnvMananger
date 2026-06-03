@@ -4,7 +4,11 @@ use std::ffi::OsStr;
 use std::process;
 
 const PROTOCOL_FLAG: &str = "--env-manager-protocol";
-const PRINTABLE_ENV_VARS: [&str; 2] = ["EM_FIXTURE_REQUIRED", "EM_FIXTURE_MODE"];
+const PRINTABLE_ENV_VARS: [&str; 3] = [
+    "EM_FIXTURE_REQUIRED",
+    "EM_FIXTURE_SECRET",
+    "EM_FIXTURE_MODE",
+];
 
 #[derive(Serialize)]
 struct ProtocolFixture<'a> {
@@ -18,6 +22,7 @@ struct EnvVarDefinition<'a> {
     name: &'a str,
     #[serde(rename = "type")]
     kind: &'a str,
+    required: bool,
     default: serde_json::Value,
 }
 
@@ -38,11 +43,19 @@ fn print_protocol() {
             EnvVarDefinition {
                 name: "EM_FIXTURE_REQUIRED",
                 kind: "string",
+                required: true,
                 default: serde_json::Value::Null,
+            },
+            EnvVarDefinition {
+                name: "EM_FIXTURE_SECRET",
+                kind: "secret",
+                required: true,
+                default: serde_json::Value::String(String::new()),
             },
             EnvVarDefinition {
                 name: "EM_FIXTURE_MODE",
                 kind: "string",
+                required: false,
                 default: serde_json::Value::String("should-not-run".to_string()),
             },
         ],

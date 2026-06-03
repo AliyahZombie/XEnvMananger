@@ -173,7 +173,7 @@ your-cli serve --env-manager-protocol
 - 绝对不要弹任何交互输入，更不要去修改用户的本地状态。
 - `version` 字段焊死为 `"1.0"`。
 - `program` 必须与用户传给 `em` 的主程序名完全一致。
-- 保护好 secret，它的 `default` 必须是 `null`（出于安全考量，目前坚决拒绝带有非空默认值的 secret）。
+- 保护好 secret，它的 `default` 推荐使用 `null`；空字符串会按未设置处理，非空默认值仍会被拒绝。
 
 最精简的 JSON 长这样：
 
