@@ -123,10 +123,7 @@ fn find_user_preset(
             continue;
         }
 
-        let bytes = match fs::read(&path) {
-            Ok(b) => b,
-            Err(e) => return Err(e.into()),
-        };
+        let bytes = fs::read(&path)?;
 
         let preset: Preset = match serde_json::from_slice(&bytes) {
             Ok(p) => p,
